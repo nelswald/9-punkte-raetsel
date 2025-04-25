@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>9-Punkte-Rätsel</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; margin: 0; padding: 2rem; background: #f5f5f5; }
+    canvas { border: 2px solid #333; background: white; touch-action: none; cursor: crosshair; }
+    .btns { margin-top: 1rem; }
+    button { margin: 0.5rem; padding: 0.5rem 1rem; font-size: 1rem; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>9-Punkte-Rätsel</h1>
+  <canvas id="canvas" width="500" height="500"></canvas>
+  <div class="btns">
+    <button onclick="clearCanvas()">Zurücksetzen</button>
+    <button onclick="downloadImage()">Lösung herunterladen</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+    let prevX = 0, prevY = 0;
+
+    // Punkte zeichnen
+    function drawDots() {
+      ctx.fillStyle = '#000';
+      const margin = 100;
+      const spacing = 150;
+      for (let y = 0; y < 3; y++) {
+        for (let x = 0; x < 3; x++) {
+          ctx.beginPath();
+          ctx.arc(margin + x * spacing, margin + y * spacing, 6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+
+    function startDraw(e) {
+      drawing = true;
+      const pos = getPos(e);
+      prevX = pos.x;
+      prevY = pos.y;
+    }
+
+    function draw(e) {
+      if (!drawing) return;
+      const pos = getPos(e);
+      ctx.beginPath();
+      ctx.moveTo(prevX, prevY);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.strokeStyle = '#d22';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      prevX = pos.x;
+      prevY = pos.y;
+    }
+
+    function endDraw() {
+      drawing = false;
+    }
+
+    function getPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        x: clientX - rect.left,
+        y: clientY - rect.top
+      };
+    }
+
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawDots();
+    }
+
+    function downloadImage() {
+      const link = document.createElement('a');
+      link.download = '9-punkte-loesung.png';
+      link.href = canvas.toDataURL();
+      link.click();
+    }
+
+    // Event Listener
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', endDraw);
+    canvas.addEventListener('mouseout', endDraw);
+    canvas.addEventListener('touchstart', startDraw);
+    canvas.addEventListener('touchmove', draw);
+    canvas.addEventListener('touchend', endDraw);
+
+    // Init
+    drawDots();
+  </script>
+</body>
+</html>
