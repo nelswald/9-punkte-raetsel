@@ -8,15 +8,27 @@
     canvas { border: 2px solid #333; background: white; touch-action: none; cursor: crosshair; }
     .btns { margin-top: 1rem; }
     button { margin: 0.5rem; padding: 0.5rem 1rem; font-size: 1rem; cursor: pointer; }
+    input { margin: 1rem; padding: 0.5rem; font-size: 1rem; }
+    form { display: none; }
   </style>
 </head>
 <body>
   <h1>9-Punkte-Rätsel</h1>
+
   <canvas id="canvas" width="500" height="500"></canvas>
+
   <div class="btns">
+    <input type="text" id="nameInput" placeholder="Dein Name oder ID">
+    <br>
     <button onclick="clearCanvas()">Zurücksetzen</button>
-    <button onclick="downloadImage()">Lösung herunterladen</button>
+    <button onclick="submitSolution()">Fertig & Hochladen</button>
   </div>
+
+  <!-- Verstecktes Formular für Netlify -->
+  <form name="upload" method="POST" enctype="multipart/form-data" data-netlify="true">
+    <input type="text" name="name" id="hiddenName">
+    <input type="file" name="file" id="uploadFile">
+  </form>
 
   <script>
     const canvas = document.getElementById('canvas');
@@ -77,11 +89,31 @@
       drawDots();
     }
 
-    function downloadImage() {
-      const link = document.createElement('a');
-      link.download = '9-punkte-loesung.png';
-      link.href = canvas.toDataURL();
-      link.click();
+    function submitSolution() {
+      const nameInput = document.getElementById('nameInput').value.trim();
+      if (!nameInput) {
+        alert("Bitte gib deinen Namen oder eine ID ein, bevor du hochlädst.");
+        return;
+      }
+      document.getElementById('hiddenName').value = nameInput;
+
+      canvas.toBlob(function(blob) {
+        const file = new File([blob], '9-punkte-loesung.png', { type: 'image/png' });
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+
+        const uploadInput = document.getElementById('uploadFile');
+        uploadInput.files = dataTransfer.files;
+
+        uploadInput.form.submit();
+
+        // ✨ Hier die persönliche Bestätigung:
+        setTimeout(() => {
+          alert(`Danke ${nameInput}! Deine Lösung wurde gespeichert.`);
+          clearCanvas();
+          document.getElementById('nameInput').value = "";
+        }, 500); // kleine Pause, damit das Formular vorher abschickt
+      });
     }
 
     // Event Listener
@@ -98,3 +130,4 @@
   </script>
 </body>
 </html>
+
